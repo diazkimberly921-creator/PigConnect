@@ -1,81 +1,106 @@
 // src/screens/HomeScreen.jsx
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import React, { useEffect, useState } from "react";
+import { View, Text, FlatList, StyleSheet, Image } from "react-native";
+import { db } from "../firebase/firebaseConfig";
+import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 
-const HomeScreen = ({ navigation }) => {
+const HomeScreen = () => {
+  const [posts, setPosts] = useState([]);
+
+  useEffect(() => {
+    const postsRef = collection(db, "posts");
+    const q = query(postsRef, orderBy("createdAt", "desc"));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const fetchedPosts = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setPosts(fetchedPosts);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const renderPost = ({ item }) => (
+    <View style={styles.postCard}>
+      <Text style={styles.user}>{item.user}</Text>
+      <Text style={styles.content}>{item.content}</Text>
+      {item.price ? <Text style={styles.price}>₱{item.price}</Text> : null}
+      {item.image ? (
+        <Image source={{ uri: item.image }} style={styles.postImage} />
+      ) : null}
+    </View>
+  );
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Features</Text>
-
-      <View style={styles.featureRow}>
-        {/* Notes Feature */}
-        <TouchableOpacity
-          style={styles.featureCard}
-          onPress={() => navigation.navigate("Notes")}
-        >
-          <MaterialCommunityIcons
-            name="note-text"
-            size={42}
-            color="#FF4D85"
-            style={styles.icon}
-          />
-          <Text style={styles.featureText}>Notes</Text>
-        </TouchableOpacity>
-
-        {/* Profile Feature */}
-        <TouchableOpacity
-          style={styles.featureCard}
-          onPress={() => navigation.navigate("Profile")}
-        >
-          <MaterialCommunityIcons
-            name="account-circle"
-            size={42}
-            color="#FF4D85"
-            style={styles.icon}
-          />
-          <Text style={styles.featureText}>Profile</Text>
-        </TouchableOpacity>
-      </View>
+      <FlatList
+        data={posts}
+        keyExtractor={(item) => item.id}
+        renderItem={renderPost}
+        contentContainerStyle={styles.feed}
+        // ✅ Sticky header
+        ListHeaderComponent={() => (
+          <Text style={styles.title}>🐷 PigConnect Feed</Text>
+        )}
+        stickyHeaderIndices={[0]}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#FFF0F5" },
+  container: {
+    flex: 1,
+    backgroundColor: "#FFF0F5",
+  },
   title: {
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: "bold",
     color: "#FF4D85",
     textAlign: "center",
-    marginBottom: 40,
-    marginTop: 40,
+    paddingVertical: 16,
+    paddingTop: 28, // push header a bit lower
+    backgroundColor: "#FFF0F5", // ensures header background covers while sticky
+    borderBottomWidth: 1,
+    borderBottomColor: "#FFD6E8",
   },
-  featureRow: {
-    flexDirection: "row",
-    justifyContent: "space-evenly",
-    marginTop: 20,
+  feed: {
+    paddingHorizontal: 12,
+    paddingBottom: 24,
   },
-  featureCard: {
+  postCard: {
     backgroundColor: "#fff",
-    paddingVertical: 25,
-    paddingHorizontal: 20,
-    borderRadius: 18,
-    alignItems: "center",
-    width: 130,
-    elevation: 4,
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
     shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
   },
-  icon: {
-    marginBottom: 10,
+  user: {
+    fontWeight: "bold",
+    fontSize: 15,
+    color: "#FF4D85",
   },
-  featureText: {
+  content: {
+    fontSize: 14,
+    color: "#333",
+    marginVertical: 6,
+  },
+  price: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#FF4D85",
-    textAlign: "center",
+    color: "#28a745",
+    marginTop: 4,
+  },
+  postImage: {
+    width: "100%",
+    height: 200,
+    borderRadius: 10,
+    marginTop: 8,
   },
 });
 

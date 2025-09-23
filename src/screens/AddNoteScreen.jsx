@@ -1,68 +1,74 @@
-import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Text, StyleSheet, SafeAreaView } from 'react-native';
+// src/screens/AddNoteScreen.jsx
+import React, { useState } from "react";
+import { View, TextInput, TouchableOpacity, Text, StyleSheet } from "react-native";
+import { addDoc, collection } from "firebase/firestore";
+import { db } from "../firebase/firebaseConfig";
 
-const AddNoteScreen = ({ navigation, route }) => {
-  const [note, setNote] = useState('');
+const AddNoteScreen = ({ navigation }) => {
+  const [text, setText] = useState("");
 
-  const handleAddNote = () => {
-    if (note.trim() === '') return;
+  const handleAddNote = async () => {
+    if (text.trim() === "") return;
 
-    if (route.params?.onAddNote) {
-      route.params.onAddNote(note);
+    try {
+      await addDoc(collection(db, "notes"), { text }); // ✅ save to Firestore
+      navigation.goBack(); // go back → NotesScreen will auto-refresh
+    } catch (error) {
+      console.error("Error adding note: ", error);
     }
-
-    navigation.goBack();
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.centerContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter note"
-          value={note}
-          onChangeText={setNote}
-          multiline
-        />
+    <View style={styles.container}>
+      <Text style={styles.title}>Add Note</Text>
 
-        <TouchableOpacity style={styles.saveBtn} onPress={handleAddNote}>
-          <Text style={styles.saveText}>Save Note</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter your note..."
+        value={text}
+        onChangeText={setText}
+        multiline
+      />
+
+      <TouchableOpacity style={styles.saveButton} onPress={handleAddNote}>
+        <Text style={styles.saveText}>Save Note</Text>
+      </TouchableOpacity>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#FFF0F5',
-  },
-  centerContainer: {
+  container: {
     flex: 1,
-    justifyContent: 'center', // center vertically
-    paddingHorizontal: 20,
+    backgroundColor: "#FFE4EC",
+    padding: 20,
   },
-  input: { 
-    borderWidth: 1, 
-    borderColor: '#FFB3C6', 
-    backgroundColor: '#fff', 
-    borderRadius: 12, 
-    padding: 14, 
-    fontSize: 16, 
-    minHeight: 150, 
-    textAlignVertical: 'top',
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#FF4D85",
+    textAlign: "center",
     marginBottom: 20,
   },
-  saveBtn: {
-    backgroundColor: '#FF4D85',
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
+  input: {
+    backgroundColor: "#fff",
+    padding: 15,
+    borderRadius: 8,
+    fontSize: 16,
+    color: "#333",
+    minHeight: 120,
+    textAlignVertical: "top",
+  },
+  saveButton: {
+    backgroundColor: "#FF4D85",
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+    marginTop: 20,
   },
   saveText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
     fontSize: 16,
   },
 });

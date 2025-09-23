@@ -1,64 +1,73 @@
-import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Text, StyleSheet, SafeAreaView } from 'react-native';
+// src/screens/EditNoteScreen.jsx
+import React, { useState } from "react";
+import { View, TextInput, TouchableOpacity, Text, StyleSheet } from "react-native";
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "../firebase/firebaseConfig";
 
-const EditNoteScreen = ({ navigation, route }) => {
-  const { note, index, onEditNote } = route.params;
-  const [editedNote, setEditedNote] = useState(note);
+const EditNoteScreen = ({ route, navigation }) => {
+  const { note } = route.params;
+  const [text, setText] = useState(note.text);
 
-  const handleSave = () => {
-    if (editedNote.trim() === '') return;
-
-    onEditNote(index, editedNote);
-    navigation.goBack();
+  const handleUpdate = async () => {
+    try {
+      const noteRef = doc(db, "notes", note.id);
+      await updateDoc(noteRef, { text });
+      navigation.goBack(); // go back → NotesScreen will auto-refresh
+    } catch (error) {
+      console.error("Error updating note: ", error);
+    }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
+      <Text style={styles.title}>Edit Note</Text>
+
       <TextInput
         style={styles.input}
-        value={editedNote}
-        onChangeText={setEditedNote}
+        value={text}
+        onChangeText={setText}
         multiline
       />
 
-      <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
+      <TouchableOpacity style={styles.saveButton} onPress={handleUpdate}>
         <Text style={styles.saveText}>Save Changes</Text>
       </TouchableOpacity>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    padding: 20, 
-    backgroundColor: '#FFF0F5', 
-    justifyContent: 'flex-start',
+  container: {
+    flex: 1,
+    backgroundColor: "#FFE4EC",
+    padding: 20,
   },
-  input: { 
-    borderWidth: 1, 
-    borderColor: '#FFB3C6', 
-    backgroundColor: '#fff', 
-    borderRadius: 12, 
-    padding: 14, 
-    fontSize: 16, 
-    minHeight: 150, 
-    textAlignVertical: 'top',
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#FF4D85",
+    textAlign: "center",
     marginBottom: 20,
   },
-  saveBtn: {
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
-    right: 20,
-    backgroundColor: '#FF4D85',
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
+  input: {
+    backgroundColor: "#fff",
+    padding: 15,
+    borderRadius: 8,
+    fontSize: 16,
+    color: "#333",
+    minHeight: 120,
+    textAlignVertical: "top",
+  },
+  saveButton: {
+    backgroundColor: "#FF4D85",
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+    marginTop: 20,
   },
   saveText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
     fontSize: 16,
   },
 });

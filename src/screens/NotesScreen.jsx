@@ -1,8 +1,10 @@
 // src/screens/NotesScreen.jsx
-import React, { useEffect, useState } from "react";
+import React, { useState, useCallback } from "react";
 import { View, Text, TouchableOpacity, FlatList, StyleSheet } from "react-native";
 import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
 import { db } from "../firebase/firebaseConfig";
+import { useFocusEffect } from "@react-navigation/native";
+
 
 const NotesScreen = ({ navigation }) => {
   const [notes, setNotes] = useState([]);
@@ -31,9 +33,12 @@ const NotesScreen = ({ navigation }) => {
     }
   };
 
-  useEffect(() => {
-    fetchNotes();
-  }, []);
+  // refresh every time screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      fetchNotes();
+    }, [])
+  );
 
   return (
     <View style={styles.container}>
@@ -43,7 +48,10 @@ const NotesScreen = ({ navigation }) => {
         data={notes}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View style={styles.noteCard}>
+          <TouchableOpacity
+            style={styles.noteCard}
+            onPress={() => navigation.navigate("EditNote", { note: item })}
+          >
             <Text style={styles.noteText}>{item.text}</Text>
             <TouchableOpacity
               style={styles.deleteButton}
@@ -51,8 +59,13 @@ const NotesScreen = ({ navigation }) => {
             >
               <Text style={styles.deleteText}>Delete</Text>
             </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
         )}
+        ListEmptyComponent={
+          <Text style={{ textAlign: "center", marginTop: 20, color: "gray" }}>
+            No notes yet. Add one!
+          </Text>
+        }
       />
 
       {/* Add Note button */}

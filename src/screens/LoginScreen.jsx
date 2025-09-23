@@ -9,9 +9,9 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
-  ScrollView
+  ScrollView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context"; // ✅
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase/firebaseConfig";
 
@@ -28,8 +28,7 @@ const LoginScreen = ({ navigation }) => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       Alert.alert("Success ✅", "Logged in successfully!");
-      // ✅ No navigation.replace("Home")
-      // AppNavigator will detect user and load AppStack → Home
+      // AppNavigator will auto redirect to AppStack → Home
     } catch (error) {
       Alert.alert("Login Error ❌", error.message);
     }
@@ -61,6 +60,13 @@ const LoginScreen = ({ navigation }) => {
             secureTextEntry
           />
 
+          {/* ✅ Forgot Password Button */}
+          <TouchableOpacity
+            onPress={() => navigation.navigate("ForgotPassword")}
+          >
+            <Text style={styles.forgotText}>Forgot Password?</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity style={styles.signInBtn} onPress={handleLogin}>
             <Text style={styles.signInText}>Sign In</Text>
           </TouchableOpacity>
@@ -83,20 +89,20 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     alignItems: "center",
     justifyContent: "center",
-    padding: 20
+    padding: 20,
   },
   logo: {
     fontSize: 36,
     fontWeight: "bold",
     color: "#FF4D85",
     textAlign: "center",
-    marginBottom: 10
+    marginBottom: 10,
   },
   subtitle: {
     fontSize: 16,
     color: "#FF4D85",
     marginBottom: 30,
-    textAlign: "center"
+    textAlign: "center",
   },
   input: {
     width: "100%",
@@ -105,7 +111,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 14,
     marginBottom: 15,
-    backgroundColor: "#fff"
+    backgroundColor: "#fff",
+  },
+  forgotText: {
+    color: "#FF4D85",
+    fontWeight: "bold",
+    alignSelf: "flex-end",
+    marginBottom: 20,
   },
   signInBtn: {
     backgroundColor: "#FF4D85",
@@ -113,11 +125,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: "center",
     width: "100%",
-    marginBottom: 15
+    marginBottom: 15,
   },
   signInText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
   signupContainer: { flexDirection: "row", justifyContent: "center" },
-  signupText: { color: "#FF4D85", fontWeight: "bold" }
+  signupText: { color: "#FF4D85", fontWeight: "bold" },
 });
 
 export default LoginScreen;

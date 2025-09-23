@@ -9,9 +9,9 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   ScrollView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase/firebaseConfig";
 
@@ -22,24 +22,23 @@ const SignupScreen = ({ navigation }) => {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const handleSignup = async () => {
-    if (!fullName || !email || !password || !confirmPassword) {
-      Alert.alert("⚠️ Missing Info", "Please fill in all fields.");
-      return;
-    }
-    if (password !== confirmPassword) {
-      Alert.alert("❌ Error", "Passwords do not match.");
-      return;
-    }
+  if (!fullName || !email || !password || !confirmPassword) {
+    Alert.alert("⚠️ Missing Info", "Please fill in all fields.");
+    return;
+  }
+  if (password !== confirmPassword) {
+    Alert.alert("❌ Error", "Passwords do not match.");
+    return;
+  }
 
-    try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      Alert.alert("✅ Success", "Welcome to PigConnect!", [
-        { text: "OK", onPress: () => navigation.replace("Home") },
-      ]);
-    } catch (error) {
-      Alert.alert("Signup Failed ❌", error.message);
-    }
-  };
+  try {
+    await createUserWithEmailAndPassword(auth, email, password);
+    // ✅ no success alert, AppNavigator will handle redirect
+  } catch (error) {
+    Alert.alert("Signup Failed ❌", error.message);
+  }
+};
+
 
   return (
     <SafeAreaView style={styles.container}>

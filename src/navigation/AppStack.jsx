@@ -1,94 +1,95 @@
-// src/navigation/AppStack.js
 import React from "react";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { Alert } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { Ionicons as Icon } from "@expo/vector-icons"; 
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase/firebaseConfig";
 
 // Screens
 import HomeScreen from "../screens/HomeScreen";
-import AddNoteScreen from "../screens/AddNoteScreen";
-import EditNoteScreen from "../screens/EditNoteScreen";
 import NotesScreen from "../screens/NotesScreen";
+import EditNoteScreen from "../screens/EditNoteScreen";
+import AddNoteScreen from "../screens/AddNoteScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 
-const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
 
-// ✅ Notes stack to handle Add/Edit
-const NotesStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="NotesMain" component={NotesScreen} />
-    <Stack.Screen name="AddNote" component={AddNoteScreen} />
-    <Stack.Screen name="EditNote" component={EditNoteScreen} />
-  </Stack.Navigator>
-);
+// ✅ Notes Stack
+function NotesStack() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="NotesHome"
+        component={NotesScreen}
+        options={{ headerShown: false }} // ✅ hides header
+      />
+      <Stack.Screen name="EditNote" component={EditNoteScreen} />
+      <Stack.Screen name="AddNote" component={AddNoteScreen} />
+    </Stack.Navigator>
+  );
+}
 
-const AppStack = () => {
+
+// ✅ Dummy screen for Logout
+const DummyScreen = () => null;
+
+export default function AppStack() {
+  const handleLogout = () => {
+    Alert.alert(
+      "Confirm Logout",
+      "Are you sure you want to log out?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Yes",
+          onPress: async () => {
+            try {
+              await signOut(auth);
+              // ✅ No manual navigation reset needed
+              // AppNavigator will detect auth change and show AuthStack
+            } catch (error) {
+              console.error("Logout error:", error);
+              Alert.alert("❌ Error", "Something went wrong while logging out.");
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
   return (
     <Tab.Navigator
-      screenOptions={{
+      screenOptions={({ route }) => ({
         headerShown: false,
+        tabBarShowLabel: true,
         tabBarActiveTintColor: "#FF4D85",
         tabBarInactiveTintColor: "gray",
-        tabBarStyle: {
-          backgroundColor: "#fff",
-          borderTopWidth: 0,
-          elevation: 4,
-          paddingTop: 6,
+        tabBarIcon: ({ color, size }) => {
+          let iconName;
+          if (route.name === "Home") iconName = "home-outline";
+          else if (route.name === "Notes") iconName = "document-text-outline";
+          else if (route.name === "Profile") iconName = "person-outline";
+          else if (route.name === "Logout") iconName = "log-out-outline";
+          return <Icon name={iconName} size={size} color={color} />;
         },
-      }}
+      })}
     >
-      {/* ✅ Home is the landing page after login */}
-      <Tab.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="home" color={color} size={size} />
-          ),
-        }}
-      />
-
-      <Tab.Screen
-        name="Notes"
-        component={NotesStack}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="note-text" color={color} size={size} />
-          ),
-        }}
-      />
-
-      <Tab.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="account" color={color} size={size} />
-          ),
-        }}
-      />
-
-      {/* ✅ Logout tab */}
+      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="Notes" component={NotesStack} />
+      <Tab.Screen name="Profile" component={ProfileScreen} />
       <Tab.Screen
         name="Logout"
-        component={ProfileScreen} // dummy, not actually used
+        component={DummyScreen}
         listeners={{
           tabPress: (e) => {
-            e.preventDefault(); // stop navigation
-            signOut(auth); // log out user
+            e.preventDefault();
+            handleLogout();
           },
-        }}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="logout" color={color} size={size} />
-          ),
         }}
       />
     </Tab.Navigator>
   );
-};
-
-export default AppStack;
+}

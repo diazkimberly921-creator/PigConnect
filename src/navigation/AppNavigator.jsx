@@ -11,12 +11,16 @@ const AppNavigator = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
-    });
-    return unsubscribe;
-  }, []);
+   const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    setUser(currentUser);   // ✅ this allows login to work properly
+    setLoading(false);
+  });
+  return unsubscribe;
+  },
+    []);
+
+
+
 
   if (loading) {
     return (
