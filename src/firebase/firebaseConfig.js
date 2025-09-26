@@ -1,14 +1,14 @@
 // src/firebase/firebaseConfig.js
-
 import { initializeApp } from "firebase/app";
 import {
   initializeAuth,
+  getAuth,
   getReactNativePersistence,
 } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getFirestore } from "firebase/firestore";
 
-// Your Firebase configuration
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyC_4WsXJjHh7Q98Vye-EEtDjeSydmR2mqo",
   authDomain: "pigconnect-f578e.firebaseapp.com",
@@ -21,10 +21,17 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// ✅ Initialize Auth with persistence
-const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(AsyncStorage),
-});
+// ✅ Auth (different for web vs native)
+let auth;
+if (typeof window !== "undefined") {
+  // Web
+  auth = getAuth(app);
+} else {
+  // Native (Android/iOS)
+  auth = initializeAuth(app, {
+    persistence: getReactNativePersistence(AsyncStorage),
+  });
+}
 
 // Firestore
 const db = getFirestore(app);

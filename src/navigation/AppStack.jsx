@@ -1,8 +1,9 @@
+// src/navigation/AppStack.js
 import React from "react";
-import { Alert } from "react-native";
+import { Alert, Platform } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Ionicons as Icon } from "@expo/vector-icons"; 
+import { Ionicons as Icon } from "@expo/vector-icons";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase/firebaseConfig";
 
@@ -16,14 +17,14 @@ import ProfileScreen from "../screens/ProfileScreen";
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
-// ✅ Notes Stack
+// ✅ Notes stack
 function NotesStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen
         name="NotesHome"
         component={NotesScreen}
-        options={{ headerShown: false }} // ✅ hides header
+        options={{ headerShown: false }}
       />
       <Stack.Screen name="EditNote" component={EditNoteScreen} />
       <Stack.Screen name="AddNote" component={AddNoteScreen} />
@@ -31,33 +32,41 @@ function NotesStack() {
   );
 }
 
-
 // ✅ Dummy screen for Logout
 const DummyScreen = () => null;
 
 export default function AppStack() {
   const handleLogout = () => {
-    Alert.alert(
-      "Confirm Logout",
-      "Are you sure you want to log out?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Yes",
-          onPress: async () => {
-            try {
-              await signOut(auth);
-              // ✅ No manual navigation reset needed
-              // AppNavigator will detect auth change and show AuthStack
-            } catch (error) {
-              console.error("Logout error:", error);
-              Alert.alert("❌ Error", "Something went wrong while logging out.");
-            }
+    if (Platform.OS === "web") {
+      // Web → fallback to browser alert
+      if (window.confirm("Are you sure you want to log out?")) {
+        signOut(auth).catch((error) => {
+          console.error("Logout error:", error);
+          window.alert("❌ Error: Could not log out.");
+        });
+      }
+    } else {
+      // Mobile → use React Native Alert
+      Alert.alert(
+        "Confirm Logout",
+        "Are you sure you want to log out?",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Yes",
+            onPress: async () => {
+              try {
+                await signOut(auth);
+              } catch (error) {
+                console.error("Logout error:", error);
+                Alert.alert("❌ Error", "Something went wrong while logging out.");
+              }
+            },
           },
-        },
-      ],
-      { cancelable: true }
-    );
+        ],
+        { cancelable: true }
+      );
+    }
   };
 
   return (
