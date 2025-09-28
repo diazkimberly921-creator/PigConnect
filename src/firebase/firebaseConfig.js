@@ -7,6 +7,7 @@ import {
 } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
 // Firebase config
 const firebaseConfig = {
@@ -21,19 +22,20 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// ✅ Auth (different for web vs native)
+// ✅ Fix: use different auth for web vs mobile
 let auth;
 if (typeof window !== "undefined") {
   // Web
   auth = getAuth(app);
 } else {
-  // Native (Android/iOS)
+  // React Native
   auth = initializeAuth(app, {
     persistence: getReactNativePersistence(AsyncStorage),
   });
 }
 
-// Firestore
+// Firestore and Storage
 const db = getFirestore(app);
+const storage = getStorage(app);
 
-export { auth, db };
+export { auth, db, storage };

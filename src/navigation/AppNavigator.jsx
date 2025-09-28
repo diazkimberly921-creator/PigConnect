@@ -1,3 +1,4 @@
+// src/navigation/AppNavigator.js
 import React, { useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { onAuthStateChanged } from "firebase/auth";
@@ -11,7 +12,6 @@ const AppNavigator = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // ✅ Listen for Firebase auth state changes
     const unsubscribe = onAuthStateChanged(
       auth,
       (currentUser) => {
@@ -25,7 +25,7 @@ const AppNavigator = () => {
       }
     );
 
-    return unsubscribe; // ✅ cleanup on unmount
+    return unsubscribe; // cleanup
   }, []);
 
   if (loading) {
